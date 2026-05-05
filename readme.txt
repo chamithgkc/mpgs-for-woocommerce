@@ -1,11 +1,10 @@
 === WooCommerce MPGS ===
-Contributors: alibasheer,samahbasheer
-Donate link: http://alibasheer.com
+Contributors: chamithgkc, alibasheer
 Tags: woocommerce, mastercard, mpgs, payment, gateway
 Requires at least: 5.6
-Tested up to: 6.5
-Stable tag: 1.5.2
-Requires PHP: 5.6
+Tested up to: 6.8
+Stable tag: 1.5.3
+Requires PHP: 7.4
 License: GNU General Public License v3.0
 License URI: http://www.gnu.org/licenses/gpl-3.0.html
 
@@ -49,6 +48,14 @@ Make sure that your Merchant Account currency is the same as your website curren
 
 == Changelog ==
 
+= 1.5.3 =
+* Security: Hardened checkout receipt against XSS vulnerabilities.
+* Security: Updated authentication password field to use secure input.
+* Compatibility: Replaced deprecated utf8_decode with mb_convert_encoding (PHP 8.2+).
+* Compatibility: Updated WordPress 6.8 and WooCommerce 9.8.5 support.
+* Compatibility: Verified and declared HPOS (High-Performance Order Storage) support.
+* Stability: Added proper error handling for API network failures.
+
 = 1.5.2 =
 * Add High-Performance Order Storage (HPOS) compatibility for latest WooCommerce.
 * Update header tags to support latest WordPress and WooCommerce functionality.
@@ -89,6 +96,9 @@ Make sure that your Merchant Account currency is the same as your website curren
 * Initial release
 
 == Upgrade Notice ==
+
+= 1.5.3 =
+Security patch and compatibility update for PHP 8.2+, WordPress 6.8, and WooCommerce 9.8.5. Highly recommended to upgrade.
 
 = 1.5.2 =
 Added compatibility for High-Performance Order Storage (HPOS) and tested with latest versions of WooCommerce.
