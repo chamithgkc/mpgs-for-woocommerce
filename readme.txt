@@ -1,8 +1,8 @@
-=== WooCommerce MPGS ===
+=== MPGS for WooCommerce ===
 Contributors: chamithgkc, alibasheer
 Tags: woocommerce, mastercard, mpgs, payment, gateway
 Requires at least: 5.6
-Tested up to: 6.8
+Tested up to: 6.9
 Stable tag: 1.5.3
 Requires PHP: 7.4
 License: GNU General Public License v3.0
@@ -16,7 +16,7 @@ This plugin implement a Hosted Checkout integration of the MasterCard Payment Ga
 
 == Installation ==
 
-1. Download the WooCommerce MPGS plugin zip file and extract to the /wp-content/plugins/ directory, or install the plugin through the WordPress plugins screen directly.
+1. Download the MPGS for WooCommerce plugin zip file and extract to the /wp-content/plugins/ directory, or install the plugin through the WordPress plugins screen directly.
 1. Activate the plugin through the 'Plugins' screen in WordPress
 1. Go to WooCommerce backend settings page
 1. Navigate to Payments tab
@@ -42,7 +42,7 @@ Make sure that your Merchant Account currency is the same as your website curren
 
 == Screenshots ==
 
-1. WooCommerce MPGS setting page
+1. MPGS for WooCommerce setting page
 2. Lightbox (popup) payment
 3. Redirect to Payment page
 

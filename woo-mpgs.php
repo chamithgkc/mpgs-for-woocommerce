@@ -1,14 +1,14 @@
 <?php
 /**
- * Plugin Name: WooCommerce MPGS
+ * Plugin Name: MPGS for WooCommerce
  * Description: Extends WooCommerce with MasterCard Payment Gateway Services (MPGS).
  * Version: 1.5.3
  * WC requires at least: 5.0.0
  * WC tested up to: 9.8.5
  * Requires at least: 5.6
  * Requires PHP: 7.4
- * Tested up to: 6.8
- * Text Domain: woo-mpgs
+ * Tested up to: 6.9
+ * Text Domain: mpgs-for-woocommerce
  * Domain Path: /languages
  * Author: Chamith Koralage
  * Author URI: https://github.com/chamithgkc
@@ -19,16 +19,6 @@
 if (!defined('ABSPATH')) {
     exit; // Exit if accessed directly.
 }
-
-/**
- * Loading text domain
- */
-function load_woo_mpgs_textdomain()
-{
-    load_plugin_textdomain('woo-mpgs', false, basename(dirname(__FILE__)) . '/languages/');
-}
-// 'init' is required since WP 6.7; 'plugins_loaded' is deprecated for text domain loading.
-add_action('init', 'load_woo_mpgs_textdomain');
 
 add_action('before_woocommerce_init', function () {
     if (class_exists('\Automattic\WooCommerce\Utilities\FeaturesUtil')) {
@@ -46,7 +36,7 @@ add_action('before_woocommerce_init', function () {
 function woo_mpgs_gateway_plugin_links($links)
 {
     $plugin_links = array(
-        '<a href="' . admin_url('admin.php?page=wc-settings&tab=checkout&section=woo_mpgs') . '">' . __('Configure', 'woo-mpgs') . '</a>'
+        '<a href="' . admin_url('admin.php?page=wc-settings&tab=checkout&section=woo_mpgs') . '">' . __('Configure', 'mpgs-for-woocommerce') . '</a>'
     );
     return array_merge($plugin_links, $links);
 }
@@ -87,7 +77,7 @@ function woo_mpgs_init()
         $wc_link = wp_kses(
             sprintf(
                 /* translators: %s: WooCommerce link */
-                __('MPGS requires WooCommerce to be installed and active. You can download %s here.', 'woo-mpgs'),
+                __('MPGS requires WooCommerce to be installed and active. You can download %s here.', 'mpgs-for-woocommerce'),
                 '<a href="https://woocommerce.com/" target="_blank">WooCommerce</a>'
             ),
             array('a' => array('href' => array(), 'target' => array()))
@@ -119,8 +109,8 @@ function woo_mpgs_init()
             $this->mpgs_icon = $this->get_option('mpgs_icon');
             $this->icon = (!empty($this->mpgs_icon)) ? $this->mpgs_icon : apply_filters('woo_mpgs_icon', plugins_url('assets/images/mastercard.png', __FILE__));
             $this->has_fields = false;
-            $this->method_title = __('MPGS', 'woo-mpgs');
-            $this->method_description = __('Allows MasterCard Payment Gateway Services (MPGS)', 'woo-mpgs');
+            $this->method_title = __('MPGS', 'mpgs-for-woocommerce');
+            $this->method_description = __('Allows MasterCard Payment Gateway Services (MPGS)', 'mpgs-for-woocommerce');
 
             // Load the settings.
             $this->init_form_fields();
@@ -142,7 +132,8 @@ function woo_mpgs_init()
             add_action('woocommerce_update_options_payment_gateways_' . $this->id, array($this, 'process_admin_options'));
             add_action('woocommerce_receipt_woo_mpgs', array($this, 'receipt_page'));
             add_action('woocommerce_api_woo_mpgs', array($this, 'process_response'));
-            add_action('wp_head', array($this, 'add_checkout_script'));
+            add_action('wp_enqueue_scripts', array($this, 'add_checkout_script'));
+            add_filter('script_loader_tag', array($this, 'add_mpgs_checkout_data_attributes'), 10, 3);
         }
 
         /**
@@ -153,85 +144,85 @@ function woo_mpgs_init()
 
             $this->form_fields = apply_filters('woo_mpgs_form_fields', array(
                 'enabled' => array(
-                    'title' => __('Enable/Disable', 'woo-mpgs'),
+                    'title' => __('Enable/Disable', 'mpgs-for-woocommerce'),
                     'type' => 'checkbox',
-                    'label' => __('Enable MPGS Payment Module.', 'woo-mpgs'),
+                    'label' => __('Enable MPGS Payment Module.', 'mpgs-for-woocommerce'),
                     'default' => 'yes',
                 ),
                 'title' => array(
-                    'title' => __('Title', 'woo-mpgs'),
+                    'title' => __('Title', 'mpgs-for-woocommerce'),
                     'type' => 'text',
-                    'description' => __('This controls the title for the payment method the customer sees during checkout.', 'woo-mpgs'),
-                    'default' => __('Credit Card', 'woo-mpgs'),
+                    'description' => __('This controls the title for the payment method the customer sees during checkout.', 'mpgs-for-woocommerce'),
+                    'default' => __('Credit Card', 'mpgs-for-woocommerce'),
                     'desc_tip' => true
                 ),
                 'description' => array(
-                    'title' => __('Description', 'woo-mpgs'),
+                    'title' => __('Description', 'mpgs-for-woocommerce'),
                     'type' => 'textarea',
-                    'description' => __('Payment method description that the customer will see on your checkout.', 'woo-mpgs'),
-                    'default' => __('Pay securely by Credit/Debit Card.', 'woo-mpgs'),
+                    'description' => __('Payment method description that the customer will see on your checkout.', 'mpgs-for-woocommerce'),
+                    'default' => __('Pay securely by Credit/Debit Card.', 'mpgs-for-woocommerce'),
                     'desc_tip' => true
                 ),
                 'mpgs_icon' => array(
-                    'title' => __('Icon', 'woo-mpgs'),
+                    'title' => __('Icon', 'mpgs-for-woocommerce'),
                     'type' => 'text',
                     'css' => 'width:100%',
-                    'description' => __('Enter an image URL to change the icon.', 'woo-mpgs'),
+                    'description' => __('Enter an image URL to change the icon.', 'mpgs-for-woocommerce'),
                     'desc_tip' => true
                 ),
                 'service_host' => array(
-                    'title' => __('MPGS URL', 'woo-mpgs'),
+                    'title' => __('MPGS URL', 'mpgs-for-woocommerce'),
                     'type' => 'text',
                     'css' => 'width:100%',
-                    'description' => __('MPGS URL, given by the Bank. This is an example: https://ap-gateway.mastercard.com/', 'woo-mpgs'),
-                    'placeholder' => __('MPGS URL', 'woo-mpgs'),
-                    'default' => __('https://ap-gateway.mastercard.com/', 'woo-mpgs'),
+                    'description' => __('MPGS URL, given by the Bank. This is an example: https://ap-gateway.mastercard.com/', 'mpgs-for-woocommerce'),
+                    'placeholder' => __('MPGS URL', 'mpgs-for-woocommerce'),
+                    'default' => __('https://ap-gateway.mastercard.com/', 'mpgs-for-woocommerce'),
                     'desc_tip' => true
                 ),
                 'api_version' => array(
-                    'title' => __('API Version', 'woo-mpgs'),
+                    'title' => __('API Version', 'mpgs-for-woocommerce'),
                     'type' => 'text',
-                    'description' => __('API version, given by the Bank', 'woo-mpgs'),
-                    'placeholder' => __('MPGS API Version (66 is recommended)', 'woo-mpgs'),
+                    'description' => __('API version, given by the Bank', 'mpgs-for-woocommerce'),
+                    'placeholder' => __('MPGS API Version (66 is recommended)', 'mpgs-for-woocommerce'),
                     'default' => 49,
                     'desc_tip' => true
                 ),
                 'merchant_id' => array(
-                    'title' => __('Merchant ID', 'woo-mpgs'),
+                    'title' => __('Merchant ID', 'mpgs-for-woocommerce'),
                     'type' => 'text',
-                    'description' => __('Merchant ID, given by the Bank', 'woo-mpgs'),
-                    'placeholder' => __('Merchant ID', 'woocommerce'),
+                    'description' => __('Merchant ID, given by the Bank', 'mpgs-for-woocommerce'),
+                    'placeholder' => __('Merchant ID', 'mpgs-for-woocommerce'),
                     'desc_tip' => true
                 ),
                 'authentication_password' => array(
-                    'title' => __('Authentication Password', 'woo-mpgs'),
+                    'title' => __('Authentication Password', 'mpgs-for-woocommerce'),
                     'type' => 'password',
-                    'description' => __('Authentication Password, given by the Bank', 'woo-mpgs'),
-                    'placeholder' => __('Authentication Password', 'woo-mpgs'),
+                    'description' => __('Authentication Password, given by the Bank', 'mpgs-for-woocommerce'),
+                    'placeholder' => __('Authentication Password', 'mpgs-for-woocommerce'),
                     'desc_tip' => true
                 ),
                 'merchant_name' => array(
-                    'title' => __('Name', 'woo-mpgs'),
+                    'title' => __('Name', 'mpgs-for-woocommerce'),
                     'type' => 'text',
-                    'description' => __('Merchant name that will appear in the gateway page or popup', 'woo-mpgs'),
+                    'description' => __('Merchant name that will appear in the gateway page or popup', 'mpgs-for-woocommerce'),
                     'desc_tip' => true
                 ),
                 'merchant_address1' => array(
-                    'title' => __('Merchant Address Line 1', 'woo-mpgs'),
+                    'title' => __('Merchant Address Line 1', 'mpgs-for-woocommerce'),
                     'type' => 'text',
-                    'description' => __('Merchant Address Line 1 that will appear in the gateway page or popup', 'woo-mpgs'),
+                    'description' => __('Merchant Address Line 1 that will appear in the gateway page or popup', 'mpgs-for-woocommerce'),
                     'desc_tip' => true
                 ),
                 'merchant_address2' => array(
-                    'title' => __('Merchant Address Line 2', 'woo-mpgs'),
+                    'title' => __('Merchant Address Line 2', 'mpgs-for-woocommerce'),
                     'type' => 'text',
-                    'description' => __('Merchant Address Line 2 that will appear in the gateway page or popup', 'woo-mpgs'),
+                    'description' => __('Merchant Address Line 2 that will appear in the gateway page or popup', 'mpgs-for-woocommerce'),
                     'desc_tip' => true
                 ),
                 'checkout_interaction' => array(
-                    'title' => __('Checkout Interaction', 'woo-mpgs'),
+                    'title' => __('Checkout Interaction', 'mpgs-for-woocommerce'),
                     'type' => 'select',
-                    'description' => __('Choose checkout interaction type. Please note that Lightbox option is not supported in API version 63 or above.', 'woo-mpgs'),
+                    'description' => __('Choose checkout interaction type. Please note that Lightbox option is not supported in API version 63 or above.', 'mpgs-for-woocommerce'),
                     'options' => array('lightbox' => 'Lightbox (for API versions < 63)', 'paymentpage' => 'Payment Page'),
                     'default' => '1',
                 )
@@ -295,7 +286,7 @@ function woo_mpgs_init()
 
             if (is_wp_error($response_json)) {
 
-                wc_add_notice(__('Payment error: Failed to communicate with MPGS server. Make sure MPGS URL looks like `https://example.mastercard.com/` by removing `checkout/version/*/checkout.js` and end the URL with a slash "/".', 'woo-mpgs'), 'error');
+                wc_add_notice(__('Payment error: Failed to communicate with MPGS server. Make sure MPGS URL looks like `https://example.mastercard.com/` by removing `checkout/version/*/checkout.js` and end the URL with a slash "/".', 'mpgs-for-woocommerce'), 'error');
 
                 return array(
                     'result' => 'fail',
@@ -323,7 +314,7 @@ function woo_mpgs_init()
                 );
 
             } else {
-                wc_add_notice(__('Payment error: ', 'woo-mpgs') . $response['error']['explanation'], 'error');
+                wc_add_notice(__('Payment error: ', 'mpgs-for-woocommerce') . $response['error']['explanation'], 'error');
             }
         }
 
@@ -360,7 +351,10 @@ function woo_mpgs_init()
                                                 amount: "<?php echo esc_js((string) $order->get_total()); ?>",
                                 currency: "<?php echo esc_js(get_woocommerce_currency()); ?>",
                             <?php } ?>
-                                            description: "<?php printf(esc_html__('Pay for order #%d via %s', 'woo-mpgs'), absint($order_id), esc_html($this->title)); ?>",
+                                            description: "<?php 
+                                                /* translators: 1: Order ID, 2: Gateway Title */
+                                                printf(esc_html__('Pay for order #%1$d via %2$s', 'mpgs-for-woocommerce'), absint($order_id), esc_html($this->title)); 
+                                            ?>",
                             customerOrderDate: "<?php echo esc_js(gmdate('Y-m-d')); ?>",
                             customerReference: "<?php echo esc_js((string) $order->get_user_id()); ?>",
                             reference: "<?php echo esc_js((string) $order_id); ?>"
@@ -412,7 +406,7 @@ function woo_mpgs_init()
                     });
                 </script>
                 <p class="loading-payment-text">
-                    <?php esc_html_e('Loading payment method, please wait. This may take up to 30 seconds.', 'woo-mpgs'); ?></p>
+                    <?php esc_html_e('Loading payment method, please wait. This may take up to 30 seconds.', 'mpgs-for-woocommerce'); ?></p>
                 <script type="text/javascript">
                     <?php if ((int) $this->api_version >= 63) {
                         echo 'Checkout.showPaymentPage();';
@@ -422,8 +416,8 @@ function woo_mpgs_init()
                 </script>
                 <?php
             } else {
-                wc_add_notice(__('Payment error: Session not found.', 'woo-mpgs'), 'error');
-                wp_redirect(wc_get_checkout_url());
+                wc_add_notice(__('Payment error: Session not found.', 'mpgs-for-woocommerce'), 'error');
+                wp_safe_redirect(wc_get_checkout_url());
                 exit;
             }
         }
@@ -439,7 +433,7 @@ function woo_mpgs_init()
             $order = wc_get_order($order_id);
 
             if (!$order) {
-                wp_die(esc_html__('Invalid order ID or order not found.', 'woo-mpgs'), esc_html__('Error', 'woo-mpgs'), array('response' => 400));
+                wp_die(esc_html__('Invalid order ID or order not found.', 'mpgs-for-woocommerce'), esc_html__('Error', 'mpgs-for-woocommerce'), array('response' => 400));
             }
 
             $resultIndicator = isset($_REQUEST['resultIndicator']) ? sanitize_text_field(wp_unslash($_REQUEST['resultIndicator'])) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
@@ -459,9 +453,9 @@ function woo_mpgs_init()
 
                 // Guard against WP_Error (network failure).
                 if (is_wp_error($response_json)) {
-                    $order->add_order_note(__('Payment error: Failed to retrieve order details from MPGS.', 'woo-mpgs'));
-                    wc_add_notice(__('Payment error: Failed to communicate with payment server.', 'woo-mpgs'), 'error');
-                    wp_redirect(wc_get_checkout_url());
+                    $order->add_order_note(__('Payment error: Failed to retrieve order details from MPGS.', 'mpgs-for-woocommerce'));
+                    wc_add_notice(__('Payment error: Failed to communicate with payment server.', 'mpgs-for-woocommerce'), 'error');
+                    wp_safe_redirect(wc_get_checkout_url());
                     exit;
                 }
 
@@ -471,9 +465,9 @@ function woo_mpgs_init()
 
                 // Guard: ensure transaction data exists before accessing.
                 if (empty($response['transaction']) || !is_array($response['transaction'])) {
-                    $order->add_order_note(__('Payment error: No transaction data returned by MPGS.', 'woo-mpgs'));
-                    wc_add_notice(__('Payment error: Something went wrong.', 'woo-mpgs'), 'error');
-                    wp_redirect(wc_get_checkout_url());
+                    $order->add_order_note(__('Payment error: No transaction data returned by MPGS.', 'mpgs-for-woocommerce'));
+                    wc_add_notice(__('Payment error: Something went wrong.', 'mpgs-for-woocommerce'), 'error');
+                    wp_safe_redirect(wc_get_checkout_url());
                     exit;
                 }
 
@@ -485,27 +479,27 @@ function woo_mpgs_init()
                     $woocommerce->cart->empty_cart();
                     $order->add_order_note(sprintf(
                         /* translators: %s: payment receipt number */
-                        __('MPGS Payment completed with Transaction Receipt: %s.', 'woo-mpgs'),
+                        __('MPGS Payment completed with Transaction Receipt: %s.', 'mpgs-for-woocommerce'),
                         sanitize_text_field($transaction_receipt)
                     ));
                     $order->payment_complete($transaction_receipt);
 
-                    wp_redirect($this->get_return_url($order));
+                    wp_safe_redirect($this->get_return_url($order));
                     exit;
                 } else {
-                    $order->add_order_note(__('Payment error: Something went wrong.', 'woo-mpgs'));
-                    wc_add_notice(__('Payment error: Something went wrong.', 'woo-mpgs'), 'error');
+                    $order->add_order_note(__('Payment error: Something went wrong.', 'mpgs-for-woocommerce'));
+                    wc_add_notice(__('Payment error: Something went wrong.', 'mpgs-for-woocommerce'), 'error');
                 }
 
             } else {
                 if (!empty($resultIndicator)) {
-                    $order->add_order_note(esc_html__('Payment error: Invalid transaction.', 'woo-mpgs'));
+                    $order->add_order_note(esc_html__('Payment error: Invalid transaction.', 'mpgs-for-woocommerce'));
                 }
-                wc_add_notice(esc_html__('Payment error: Invalid transaction.', 'woo-mpgs'), 'error');
+                wc_add_notice(esc_html__('Payment error: Invalid transaction.', 'mpgs-for-woocommerce'), 'error');
             }
 
             // Reaching this line means there is an error; redirect back to checkout page.
-            wp_redirect(wc_get_checkout_url());
+            wp_safe_redirect(wc_get_checkout_url());
             exit;
         }
 
@@ -525,11 +519,25 @@ function woo_mpgs_init()
                     $src = trailingslashit($this->service_host) . 'checkout/version/' . $this->api_version . '/checkout.js';
                 }
 
-                ?>
-                <script src="<?php echo esc_url($src); ?>" data-error="errorCallback"
-                    data-cancel="<?php echo esc_url(wc_get_checkout_url()); ?>"></script>
-                <?php
+                wp_enqueue_script('mpgs-checkout', $src, array(), '1.5.3', false);
             }
+        }
+
+        /**
+         * Filter script tag to add required data attributes.
+         *
+         * @param string $tag    The `<script>` tag for the enqueued script.
+         * @param string $handle The script's registered handle.
+         * @param string $src    The script's source URL.
+         * @return string Modified script tag.
+         */
+        public function add_mpgs_checkout_data_attributes($tag, $handle, $src)
+        {
+            if ('mpgs-checkout' === $handle) {
+                $cancel_url = esc_url(wc_get_checkout_url());
+                $tag = str_replace(' src', ' data-error="errorCallback" data-cancel="' . $cancel_url . '" src', $tag);
+            }
+            return $tag;
         }
 
         /**

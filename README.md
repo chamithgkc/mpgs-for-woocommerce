@@ -1,4 +1,4 @@
-# WooCommerce MPGS
+# MPGS for WooCommerce
 
 ## Description
 This plugin implements a Hosted Checkout integration for MasterCard Payment Gateway Services (MPGS) in WooCommerce. It provides a seamless and secure way to accept credit and debit card payments directly on your WooCommerce store.
